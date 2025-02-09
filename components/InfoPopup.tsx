@@ -22,7 +22,7 @@ export function InfoPopup({ maxSize, allowedTypes }: InfoPopupProps) {
     return (
         <Dialog>
             <DialogTrigger asChild>
-                <Button variant="outline">
+                <Button variant="outline" title="File requirements">
                     <Info className="h-4 w-4" />
                     <span className="sr-only">File requirements</span>
                 </Button>

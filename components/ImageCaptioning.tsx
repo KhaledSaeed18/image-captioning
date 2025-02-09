@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import Image from "next/image"
-import { Upload, RefreshCw, Check, Copy } from "lucide-react"
+import { Upload, RefreshCw, Check, Copy, RotateCw } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -157,6 +157,7 @@ export default function ImageCaptioning() {
                             onChange={handleImageUpload}
                             className="hidden"
                             id="image-upload"
+                            title="Upload Image"
                         />
                         <label
                             htmlFor="image-upload"
@@ -171,14 +172,14 @@ export default function ImageCaptioning() {
                                     unoptimized
                                 />
                             ) : (
-                                <div className="flex flex-col items-center justify-center h-full">
+                                <div className="flex flex-col items-center justify-center h-full" title="Upload Image">
                                     <Upload className="w-12 h-12 mb-2" />
                                     <p className="text-sm">Click or drag and drop an image here</p>
                                 </div>
                             )}
                         </label>
                     </div>
-                    <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center justify-between gap-2" title="Generate caption button">
                         <Button onClick={generateCaption} disabled={!selectedImage || isLoading} className="w-full">
                             {isLoading ? (
                                 <>
@@ -190,6 +191,14 @@ export default function ImageCaptioning() {
                             )}
                         </Button>
                         <InfoPopup maxSize={MAX_SIZE} allowedTypes={ALLOWED_TYPES} />
+                        <Button
+                            onClick={() => setSelectedImage(null)}
+                            variant="outline"
+                            disabled={!selectedImage}
+                            title="Reset Field"
+                        >
+                            <RotateCw />
+                        </Button>
                     </div>
                 </CardContent>
             </Card>
@@ -203,6 +212,7 @@ export default function ImageCaptioning() {
                                 size="icon"
                                 onClick={copyToClipboard}
                                 className="h-8 w-8"
+                                title="Copy caption to clipboard"
                             >
                                 {isCopied ? (
                                     <Check className="h-4 w-4" />

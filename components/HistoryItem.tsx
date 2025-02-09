@@ -44,6 +44,7 @@ export default function HistoryItem({ item }: HistoryItemProps) {
                         size="icon"
                         onClick={copyToClipboard}
                         className="h-8 w-8 flex-shrink-0"
+                        title="Copy caption to clipboard"
                     >
                         {isCopied ? (
                             <Check className="h-4 w-4" />
