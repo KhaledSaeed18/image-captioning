@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { useToast } from "@/hooks/use-toast"
+import { InfoPopup } from "./InfoPopup"
 
 interface HistoryItem {
     id: string
@@ -24,6 +25,9 @@ export default function ImageCaptioning() {
     const [isCopied, setIsCopied] = useState(false)
     const { toast } = useToast()
 
+    const MAX_SIZE = 10 * 1024 * 1024
+    const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
+
     useEffect(() => {
         const storedHistory = localStorage.getItem("imageCaptioningHistory")
         if (storedHistory) {
@@ -38,23 +42,56 @@ export default function ImageCaptioning() {
     }, [objectUrl])
 
     const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0]
-        if (file) {
-            const url = URL.createObjectURL(file)
-            setObjectUrl(url)
+        const file = e.target.files?.[0];
+        if (!file) return;
 
-            const reader = new FileReader()
-            reader.onload = (e) => {
-                setSelectedImage(e.target?.result as string)
-            }
-            reader.readAsDataURL(file)
+        if (!ALLOWED_TYPES.includes(file.type)) {
+            toast({
+                title: "Invalid file type",
+                description: `Please upload a valid image file. Allowed types: ${ALLOWED_TYPES.join(', ')}`,
+                variant: "destructive",
+            });
+            return;
         }
-    }
+
+        if (file.size > MAX_SIZE) {
+            const sizeMB = MAX_SIZE / (1024 * 1024);
+            toast({
+                title: "File too large",
+                description: `Image size must be less than ${sizeMB}MB`,
+                variant: "destructive",
+            });
+            return;
+        }
+
+        const url = URL.createObjectURL(file);
+        setObjectUrl(url);
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            setSelectedImage(e.target?.result as string);
+        };
+        reader.onerror = () => {
+            toast({
+                title: "Error",
+                description: "Failed to read the image file. Please try again.",
+                variant: "destructive",
+            });
+        };
+        reader.readAsDataURL(file);
+    };
 
     const generateCaption = async () => {
-        if (!selectedImage) return
+        if (!selectedImage) {
+            toast({
+                title: "No image selected",
+                description: "Please select an image first",
+                variant: "destructive",
+            });
+            return;
+        }
 
-        setIsLoading(true)
+        setIsLoading(true);
         try {
             const response = await fetch("/api/generate-caption", {
                 method: "POST",
@@ -62,44 +99,46 @@ export default function ImageCaptioning() {
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify({ image: selectedImage }),
-            })
+            });
+
+            const data = await response.json();
 
             if (!response.ok) {
-                throw new Error("Failed to generate caption")
+                throw new Error(data.error || "Failed to generate caption");
             }
 
-            const data = await response.json()
-            setCaption(data.caption)
+            setCaption(data.caption);
 
             const newHistoryItem: HistoryItem = {
                 id: Date.now().toString(),
                 image: selectedImage,
                 caption: data.caption,
                 timestamp: Date.now(),
-            }
+            };
 
-            const updatedHistory = [newHistoryItem, ...history].slice(0, 10)
-            setHistory(updatedHistory)
-            localStorage.setItem("imageCaptioningHistory", JSON.stringify(updatedHistory))
+            const updatedHistory = [newHistoryItem, ...history].slice(0, 10);
+            setHistory(updatedHistory);
+            localStorage.setItem("imageCaptioningHistory", JSON.stringify(updatedHistory));
 
-            window.dispatchEvent(new Event('historyUpdate'))
+            window.dispatchEvent(new Event('historyUpdate'));
 
             toast({
-                title: "Caption generated",
+                title: "Success",
                 description: "Your image caption has been generated successfully.",
-            })
+            });
         } catch (error) {
-            console.error("Error generating caption:", error)
-            setCaption("Error generating caption. Please try again.")
+            console.error("Error generating caption:", error);
+            const errorMessage = error instanceof Error ? error.message : "Failed to generate caption";
+            setCaption("");
             toast({
                 title: "Error",
-                description: "Failed to generate caption. Please try again.",
+                description: errorMessage,
                 variant: "destructive",
-            })
+            });
         } finally {
-            setIsLoading(false)
+            setIsLoading(false);
         }
-    }
+    };
 
     const copyToClipboard = async () => {
         await navigator.clipboard.writeText(caption)
@@ -112,7 +151,13 @@ export default function ImageCaptioning() {
             <Card>
                 <CardContent className="p-6">
                     <div className="mb-6">
-                        <Input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" id="image-upload" />
+                        <Input
+                            type="file"
+                            accept=".jpg,.jpeg,.png,.webp,.gif,image/jpeg,image/png,image/webp,image/gif"
+                            onChange={handleImageUpload}
+                            className="hidden"
+                            id="image-upload"
+                        />
                         <label
                             htmlFor="image-upload"
                             className="relative block w-full aspect-[17/6] rounded-lg border-2 border-dashed border-muted-foreground bg-muted p-4 text-center hover:bg-accent hover:text-accent-foreground transition-colors cursor-pointer"
@@ -133,16 +178,19 @@ export default function ImageCaptioning() {
                             )}
                         </label>
                     </div>
-                    <Button onClick={generateCaption} disabled={!selectedImage || isLoading} className="w-full">
-                        {isLoading ? (
-                            <>
-                                <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-                                Generating...
-                            </>
-                        ) : (
-                            "Generate Caption"
-                        )}
-                    </Button>
+                    <div className="flex items-center justify-between gap-2">
+                        <Button onClick={generateCaption} disabled={!selectedImage || isLoading} className="w-full">
+                            {isLoading ? (
+                                <>
+                                    <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                                    Generating...
+                                </>
+                            ) : (
+                                "Generate Caption"
+                            )}
+                        </Button>
+                        <InfoPopup maxSize={MAX_SIZE} allowedTypes={ALLOWED_TYPES} />
+                    </div>
                 </CardContent>
             </Card>
             {caption && (
