@@ -71,16 +71,18 @@ export default function ImageCaptioning() {
             const data = await response.json()
             setCaption(data.caption)
 
-            // Save to history
             const newHistoryItem: HistoryItem = {
                 id: Date.now().toString(),
                 image: selectedImage,
                 caption: data.caption,
                 timestamp: Date.now(),
             }
+
             const updatedHistory = [newHistoryItem, ...history].slice(0, 10)
-            setHistory(updatedHistory)
-            localStorage.setItem("imageCaptioningHistory", JSON.stringify(updatedHistory))
+    setHistory(updatedHistory)
+    localStorage.setItem("imageCaptioningHistory", JSON.stringify(updatedHistory))
+    
+    window.dispatchEvent(new Event('historyUpdate'))
 
             toast({
                 title: "Caption generated",

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
@@ -17,12 +17,22 @@ interface HistoryItemType {
 export default function Sidebar() {
     const [history, setHistory] = useState<HistoryItemType[]>([])
 
-    useState(() => {
+    const updateHistory = useCallback(() => {
         const storedHistory = localStorage.getItem("imageCaptioningHistory")
         if (storedHistory) {
             setHistory(JSON.parse(storedHistory))
         }
-    })
+    }, [])
+
+    useEffect(() => {
+        updateHistory()
+
+        window.addEventListener('historyUpdate', updateHistory)
+        
+        return () => {
+            window.removeEventListener('historyUpdate', updateHistory)
+        }
+    }, [updateHistory])
 
     return (
         <Sheet>
