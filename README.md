@@ -1,4 +1,4 @@
-# AI Image Captioning App
+# ✨ AI Image Captioning App
 
 A modern web application that generates captions for images using AI.
 
