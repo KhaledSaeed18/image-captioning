@@ -8,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { useToast } from "@/hooks/use-toast"
 import { InfoPopup } from "./InfoPopup"
+import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts'
 
 interface HistoryItem {
     id: string
@@ -23,6 +24,7 @@ export default function ImageCaptioning() {
     const [objectUrl, setObjectUrl] = useState<string>("")
     const [history, setHistory] = useState<HistoryItem[]>([])
     const [isCopied, setIsCopied] = useState(false)
+    const [infoOpen, setInfoOpen] = useState(false)
     const { toast } = useToast()
 
     const MAX_SIZE = 10 * 1024 * 1024
@@ -146,6 +148,57 @@ export default function ImageCaptioning() {
         setTimeout(() => setIsCopied(false), 2000)
     }
 
+    const triggerImageUpload = () => {
+        document.getElementById('image-upload')?.click()
+    }
+
+    useKeyboardShortcuts([
+        {
+            key: 'o',
+            ctrlKey: true,
+            callback: triggerImageUpload,
+            preventDefault: true,
+        },
+        {
+            key: 'g',
+            ctrlKey: true,
+            callback: () => {
+                if (!isLoading && selectedImage) {
+                    generateCaption()
+                }
+            },
+            preventDefault: true,
+        },
+        {
+            key: 'r',
+            ctrlKey: true,
+            callback: () => {
+                if (selectedImage) {
+                    setSelectedImage(null)
+                }
+            },
+            preventDefault: true,
+        },
+        {
+            key: 'c',
+            ctrlKey: true,
+            callback: () => {
+                if (caption) {
+                    copyToClipboard()
+                }
+            },
+            preventDefault: true,
+        },
+        {
+            key: 'i',
+            ctrlKey: true,
+            callback: () => {
+                setInfoOpen(!infoOpen)
+            },
+            preventDefault: true,
+        },
+    ])
+
     return (
         <div className="max-w-3xl mx-auto">
             <Card>
@@ -157,7 +210,7 @@ export default function ImageCaptioning() {
                             onChange={handleImageUpload}
                             className="hidden"
                             id="image-upload"
-                            title="Upload Image"
+                            title="Upload Image (Ctrl+O)"
                         />
                         <label
                             htmlFor="image-upload"
@@ -172,15 +225,20 @@ export default function ImageCaptioning() {
                                     unoptimized
                                 />
                             ) : (
-                                <div className="flex flex-col items-center justify-center h-full" title="Upload Image">
+                                <div className="flex flex-col items-center justify-center h-full" title="Upload Image (Ctrl+O)">
                                     <Upload className="w-12 h-12 mb-2" />
                                     <p className="text-sm">Click or drag and drop an image here</p>
                                 </div>
                             )}
                         </label>
                     </div>
-                    <div className="flex items-center justify-between gap-2" title="Generate caption button">
-                        <Button onClick={generateCaption} disabled={!selectedImage || isLoading} className="w-full">
+                    <div className="flex items-center justify-between gap-2">
+                        <Button
+                            onClick={generateCaption}
+                            disabled={!selectedImage || isLoading}
+                            className="w-full"
+                            title="Generate Caption (Ctrl+G)"
+                        >
                             {isLoading ? (
                                 <>
                                     <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
@@ -190,12 +248,17 @@ export default function ImageCaptioning() {
                                 "Generate Caption"
                             )}
                         </Button>
-                        <InfoPopup maxSize={MAX_SIZE} allowedTypes={ALLOWED_TYPES} />
+                        <InfoPopup
+                            maxSize={MAX_SIZE}
+                            allowedTypes={ALLOWED_TYPES}
+                            open={infoOpen}
+                            onOpenChange={setInfoOpen}
+                        />
                         <Button
                             onClick={() => setSelectedImage(null)}
                             variant="outline"
                             disabled={!selectedImage}
-                            title="Reset Field"
+                            title="Reset Field (Ctrl+R)"
                         >
                             <RotateCw />
                         </Button>
@@ -212,7 +275,7 @@ export default function ImageCaptioning() {
                                 size="icon"
                                 onClick={copyToClipboard}
                                 className="h-8 w-8"
-                                title="Copy caption to clipboard"
+                                title="Copy caption to clipboard (Ctrl+C)"
                             >
                                 {isCopied ? (
                                     <Check className="h-4 w-4" />

@@ -14,15 +14,22 @@ import { Button } from "@/components/ui/button"
 interface InfoPopupProps {
     maxSize: number
     allowedTypes: string[]
+    open?: boolean
+    onOpenChange?: (open: boolean) => void
 }
 
-export function InfoPopup({ maxSize, allowedTypes }: InfoPopupProps) {
+export function InfoPopup({
+    maxSize,
+    allowedTypes,
+    open,
+    onOpenChange
+}: InfoPopupProps) {
     const sizeMB = maxSize / (1024 * 1024)
 
     return (
-        <Dialog>
+        <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogTrigger asChild>
-                <Button variant="outline" title="File requirements">
+                <Button variant="outline" title="File requirements (Ctrl+I)">
                     <Info className="h-4 w-4" />
                     <span className="sr-only">File requirements</span>
                 </Button>

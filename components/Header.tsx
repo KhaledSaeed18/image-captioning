@@ -1,6 +1,7 @@
 import { ModeToggle } from "@/components/ModeToggle"
 import { ImageIcon } from "lucide-react"
 import Sidebar from "./Sidebar"
+import { ShortcutsDialog } from "./ShortcutsDialog"
 
 export default function Header() {
     return (
@@ -14,6 +15,7 @@ export default function Header() {
                 </div>
                 <div className="ml-auto space-x-2">
                     <Sidebar />
+                    <ShortcutsDialog />
                     <ModeToggle />
                 </div>
             </div>

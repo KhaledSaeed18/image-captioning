@@ -17,6 +17,7 @@ import {
     AlertDialogTitle,
     AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
+import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts"
 
 
 interface HistoryItemType {
@@ -28,6 +29,7 @@ interface HistoryItemType {
 
 export default function Sidebar() {
     const [history, setHistory] = useState<HistoryItemType[]>([])
+    const [isOpen, setIsOpen] = useState(false)
 
     const updateHistory = useCallback(() => {
         const storedHistory = localStorage.getItem("imageCaptioningHistory")
@@ -63,10 +65,19 @@ export default function Sidebar() {
         }
     }, [])
 
+    useKeyboardShortcuts([
+        {
+            key: "h",
+            ctrlKey: true,
+            callback: () => setIsOpen(prev => !prev),
+            preventDefault: true
+        },
+    ])
+
     return (
-        <Sheet>
+        <Sheet open={isOpen} onOpenChange={setIsOpen}>
             <SheetTrigger asChild>
-                <Button variant="outline" size="icon" title="View history">
+                <Button variant="outline" size="icon" title="View history (Ctrl+H)">
                     <HistoryIcon className="h-4 w-4" />
                 </Button>
             </SheetTrigger>
