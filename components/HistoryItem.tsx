@@ -1,8 +1,19 @@
 import { useState } from "react"
 import Image from "next/image"
-import { Copy, Check } from "lucide-react"
+import { Copy, Check, Trash2 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 
 interface HistoryItemProps {
     item: {
@@ -11,9 +22,13 @@ interface HistoryItemProps {
         caption: string
         timestamp: number
     }
+    onDelete: (id: string) => void
 }
 
-export default function HistoryItem({ item }: HistoryItemProps) {
+export default function HistoryItem({
+    item,
+    onDelete
+}: HistoryItemProps) {
     const [isCopied, setIsCopied] = useState(false)
 
     const copyToClipboard = async () => {
@@ -24,8 +39,39 @@ export default function HistoryItem({ item }: HistoryItemProps) {
 
     return (
         <Card className="mb-4">
-            <CardHeader>
-                <CardTitle className="text-sm font-medium">{new Date(item.timestamp).toLocaleString()}</CardTitle>
+            <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle className="text-sm font-medium">
+                    {new Date(item.timestamp).toLocaleString()}
+                </CardTitle>
+                <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                        <Button
+                            variant="outline"
+                            size="icon"
+                            className="h-8 w-8"
+                            title="Delete item"
+                        >
+                            <Trash2 className="h-4 w-4 text-muted-foreground" />
+                        </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>Delete History Item</AlertDialogTitle>
+                            <AlertDialogDescription>
+                                Are you sure you want to delete this item? This action cannot be undone.
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction
+                                onClick={() => onDelete(item.id)}
+                                className="bg-[#EC4141] hover:bg-[#EC4141]/90 text-white"
+                            >
+                                Delete
+                            </AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
             </CardHeader>
             <CardContent>
                 <div className="relative aspect-video w-full mb-2">

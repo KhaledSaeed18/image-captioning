@@ -52,6 +52,17 @@ export default function Sidebar() {
         window.dispatchEvent(new Event('historyUpdate'))
     }
 
+    const deleteHistoryItem = useCallback((id: string) => {
+        const storedHistory = localStorage.getItem("imageCaptioningHistory")
+        if (storedHistory) {
+            const history = JSON.parse(storedHistory)
+            const newHistory = history.filter((item: HistoryItemType) => item.id !== id)
+            localStorage.setItem("imageCaptioningHistory", JSON.stringify(newHistory))
+            setHistory(newHistory)
+            window.dispatchEvent(new Event('historyUpdate'))
+        }
+    }, [])
+
     return (
         <Sheet>
             <SheetTrigger asChild>
@@ -105,7 +116,12 @@ export default function Sidebar() {
                     {history.length === 0 ? (
                         <p className="text-muted-foreground">No history yet.</p>
                     ) : (
-                        history.map((item) => <HistoryItem key={item.id} item={item} />)
+                        history.map((item) =>
+                            <HistoryItem
+                                key={item.id}
+                                item={item}
+                                onDelete={deleteHistoryItem}
+                            />)
                     )}
                 </ScrollArea>
             </SheetContent>
