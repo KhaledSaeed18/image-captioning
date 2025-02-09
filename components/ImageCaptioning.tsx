@@ -79,10 +79,10 @@ export default function ImageCaptioning() {
             }
 
             const updatedHistory = [newHistoryItem, ...history].slice(0, 10)
-    setHistory(updatedHistory)
-    localStorage.setItem("imageCaptioningHistory", JSON.stringify(updatedHistory))
-    
-    window.dispatchEvent(new Event('historyUpdate'))
+            setHistory(updatedHistory)
+            localStorage.setItem("imageCaptioningHistory", JSON.stringify(updatedHistory))
+
+            window.dispatchEvent(new Event('historyUpdate'))
 
             toast({
                 title: "Caption generated",
@@ -115,7 +115,7 @@ export default function ImageCaptioning() {
                         <Input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" id="image-upload" />
                         <label
                             htmlFor="image-upload"
-                            className="relative block w-full aspect-video rounded-lg border-2 border-dashed border-muted-foreground bg-muted p-4 text-center hover:bg-accent hover:text-accent-foreground transition-colors cursor-pointer"
+                            className="relative block w-full aspect-[17/6] rounded-lg border-2 border-dashed border-muted-foreground bg-muted p-4 text-center hover:bg-accent hover:text-accent-foreground transition-colors cursor-pointer"
                         >
                             {selectedImage ? (
                                 <Image
