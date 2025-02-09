@@ -11,31 +11,26 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: "No image provided" }, { status: 400 })
         }
 
-        // Validate base64 image format
         if (!image.startsWith('data:image/')) {
             return NextResponse.json({ error: "Invalid image format" }, { status: 400 })
         }
 
-        // Extract base64 data
         const base64Image = image.split(';base64,').pop()
         if (!base64Image) {
             return NextResponse.json({ error: "Invalid base64 image data" }, { status: 400 })
         }
 
-        // Convert base64 to buffer
         const imageBuffer = Buffer.from(base64Image, 'base64')
 
-        const MAX_SIZE = 10 * 1024 * 1024; // 10MB
+        const MAX_SIZE = 10 * 1024 * 1024;
         if (imageBuffer.length > MAX_SIZE) {
             return NextResponse.json({ error: "Image too large" }, { status: 400 })
         }
 
-        // Verify buffer is not empty
         if (imageBuffer.length === 0) {
             return NextResponse.json({ error: "Empty image data" }, { status: 400 })
         }
 
-        // Convert buffer to Blob
         const blob = new Blob([imageBuffer], { type: 'image/webp' })
 
         const response = await hf.imageToText({
