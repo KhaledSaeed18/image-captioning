@@ -23,10 +23,10 @@ A modern web application that generates captions for images using AI.
 ## 🛠️ Technology Stack
 
 - **Frontend**:
-  - Next.js 14 (React Framework)
+  - Next.js (React Framework)
   - TypeScript
   - Tailwind CSS
-  - Radix UI Components
+  - Radix UI Components (Shadcn/ui)
   - Lucide React Icons
 
 - **Backend**:
