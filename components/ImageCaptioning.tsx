@@ -1,9 +1,12 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useState, useEffect } from "react"
 import Image from "next/image"
-import { Upload, RefreshCw, MessageSquareText, Copy, CheckCheck } from "lucide-react"
-import History from "./History"
+import { Upload, RefreshCw, Check, Copy } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { useToast } from "@/hooks/use-toast"
 
 interface HistoryItem {
     id: string
@@ -17,8 +20,9 @@ export default function ImageCaptioning() {
     const [caption, setCaption] = useState<string>("")
     const [isLoading, setIsLoading] = useState<boolean>(false)
     const [objectUrl, setObjectUrl] = useState<string>("")
-    const [isCopied, setIsCopied] = useState(false)
     const [history, setHistory] = useState<HistoryItem[]>([])
+    const [isCopied, setIsCopied] = useState(false)
+    const { toast } = useToast()
 
     useEffect(() => {
         const storedHistory = localStorage.getItem("imageCaptioningHistory")
@@ -67,6 +71,7 @@ export default function ImageCaptioning() {
             const data = await response.json()
             setCaption(data.caption)
 
+            // Save to history
             const newHistoryItem: HistoryItem = {
                 id: Date.now().toString(),
                 image: selectedImage,
@@ -76,9 +81,19 @@ export default function ImageCaptioning() {
             const updatedHistory = [newHistoryItem, ...history].slice(0, 10)
             setHistory(updatedHistory)
             localStorage.setItem("imageCaptioningHistory", JSON.stringify(updatedHistory))
+
+            toast({
+                title: "Caption generated",
+                description: "Your image caption has been generated successfully.",
+            })
         } catch (error) {
             console.error("Error generating caption:", error)
             setCaption("Error generating caption. Please try again.")
+            toast({
+                title: "Error",
+                description: "Failed to generate caption. Please try again.",
+                variant: "destructive",
+            })
         } finally {
             setIsLoading(false)
         }
@@ -91,79 +106,65 @@ export default function ImageCaptioning() {
     }
 
     return (
-        <div className="flex flex-col items-center gap-6 w-full max-w-md mx-auto">
-            <div className="relative w-full aspect-[16/9] overflow-hidden rounded-lg border-2 border-dashed border-white p-4 text-center">
-                <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageUpload}
-                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                />
-                {selectedImage ? (
-                    <Image
-                        src={selectedImage || "/placeholder.svg"}
-                        alt="Uploaded image"
-                        fill
-                        className="object-contain"
-                        unoptimized
-                    />
-                ) : (
-                    <div className="flex flex-col items-center justify-center h-full">
-                        <Upload className="size-10 text-blue-600 mb-2" />
-                        <p className="text-sm text-blue-600">
-                            Click or drag and drop an image here
-                        </p>
-                    </div>
-                )}
-            </div>
-            <button
-                onClick={generateCaption}
-                disabled={!selectedImage || isLoading}
-                className="flex items-center justify-center gap-2 w-full py-2 px-4 bg-blue-600 text-white font-semibold rounded-full hover:bg-blue-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-                {isLoading ? (
-                    <>
-                        <RefreshCw className="w-5 h-5 animate-spin" />
-                        Generating...
-                    </>
-                ) : (
-                    "Generate Caption"
-                )}
-            </button>
-            {caption && (
-                <div className="w-full p-6 rounded-xl backdrop-blur-sm border border-white shadow-lg">
-                    <div className="flex items-center justify-between mb-4">
-                        <div className="flex items-center gap-2">
-                            <MessageSquareText className="w-5 h-5 text-blue-600" />
-                            <h2 className="text-lg font-semibold text-blue-600">
-                                Generated Caption
-                            </h2>
-                        </div>
-                        <button
-                            onClick={copyToClipboard}
-                            className="flex items-center gap-1 px-3 py-1 text-sm text-blue-600 hover:bg-blue-50 rounded-full transition-colors"
+        <div className="max-w-3xl mx-auto">
+            <Card>
+                <CardContent className="p-6">
+                    <div className="mb-6">
+                        <Input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" id="image-upload" />
+                        <label
+                            htmlFor="image-upload"
+                            className="relative block w-full aspect-video rounded-lg border-2 border-dashed border-muted-foreground bg-muted p-4 text-center hover:bg-accent hover:text-accent-foreground transition-colors cursor-pointer"
                         >
-                            {isCopied ? (
-                                <>
-                                    <CheckCheck className="w-4 h-4" />
-                                    <span>Copied!</span>
-                                </>
+                            {selectedImage ? (
+                                <Image
+                                    src={selectedImage || "/placeholder.svg"}
+                                    alt="Uploaded image"
+                                    fill
+                                    className="object-contain rounded-md"
+                                    unoptimized
+                                />
                             ) : (
-                                <>
-                                    <Copy className="w-4 h-4" />
-                                    <span>Copy</span>
-                                </>
+                                <div className="flex flex-col items-center justify-center h-full">
+                                    <Upload className="w-12 h-12 mb-2" />
+                                    <p className="text-sm">Click or drag and drop an image here</p>
+                                </div>
                             )}
-                        </button>
+                        </label>
                     </div>
-                    <div className="p-4 rounded-lg">
-                        <p className="text-blue-700 leading-relaxed">
-                            {caption}
-                        </p>
-                    </div>
-                </div>
+                    <Button onClick={generateCaption} disabled={!selectedImage || isLoading} className="w-full">
+                        {isLoading ? (
+                            <>
+                                <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                                Generating...
+                            </>
+                        ) : (
+                            "Generate Caption"
+                        )}
+                    </Button>
+                </CardContent>
+            </Card>
+            {caption && (
+                <Card className="mt-6">
+                    <CardContent className="p-6">
+                        <div className="flex items-center justify-between mb-4">
+                            <h2 className="text-2xl font-bold">Generated Caption</h2>
+                            <Button
+                                variant="outline"
+                                size="icon"
+                                onClick={copyToClipboard}
+                                className="h-8 w-8"
+                            >
+                                {isCopied ? (
+                                    <Check className="h-4 w-4" />
+                                ) : (
+                                    <Copy className="h-4 w-4" />
+                                )}
+                            </Button>
+                        </div>
+                        <p className="text-lg italic">&ldquo;{caption}&rdquo;</p>
+                    </CardContent>
+                </Card>
             )}
-            <History history={history} />
         </div>
     )
 }
